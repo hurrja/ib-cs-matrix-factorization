@@ -7,16 +7,16 @@ public class Main
     // hyperparameters
     final int F = 2; // number of features
     final double GAMMA = 0.001; // sgd step size
-    final double LAMBDA = 0.002; // regularization weight for user weights
+    final double LAMBDA = 0.01; // regularization weight for user weights
     final double MU = LAMBDA; // regularization weight for degrees
-    final int NUM_SGD_ROUNDS = 10000; // termination condition
+    final int NUM_SGD_ROUNDS = 1000; // termination condition
 
     final int[][] R = {{3, 2, 3, -1, -1},
-      {-1, 2, 2, 2, -1},
-      {3, 4, -1, 4, 2},
-      {2, 2, 4, -1, 1},
-      {2, -1, 3, 2, 1},
-      {-1, -1, 3, 1, 1}};
+                       {-1, 2, 2, 2, -1},
+                       {3, 4, -1, 4, 2},
+                       {2, 2, 4, -1, 1},
+                       {2, -1, 3, 2, 1},
+                       {-1, -1, 3, 1, 1}};
     final int NUM_USERS = R.length;
     final int NUM_ITEMS = R [0].length;
 
@@ -25,52 +25,44 @@ public class Main
     double[][] D = new double [F][NUM_ITEMS];
     initializeOnes (D);
 
+    for (int r = 0; r < NUM_SGD_ROUNDS; r++)
     {
-      // local block to hide i and j
-      int i = 0, j = 0;
-      for (int r = 0; r < NUM_SGD_ROUNDS; r++)
+      if (r % (NUM_SGD_ROUNDS / 10) == 0) // log 10 times
       {
-        if (r % (NUM_SGD_ROUNDS / 10) == 0) // log 10 times
-        {
-          // log progress
-          double g = 0; // objective function
-          for (int k = 0; k < NUM_USERS; k++)
-            for (int l = 0; l < NUM_ITEMS; l++)
+        // log progress
+        double g = 0; // objective function
+        for (int i = 0; i < NUM_USERS; i++)
+          for (int j = 0; j < NUM_ITEMS; j++)
+          {
+            if (R [i][j] >= 0)
             {
-              if (R [k][l] >= 0)
-              {
-                double d = R [k][l] - predicted (k, l, W, D);
-                g += d * d;
-              }
+              double d = R [i][j] - predicted (i, j, W, D);
+              g += d * d;
             }
+          }
           
-          g += LAMBDA * l2Norm (W);
-          g += MU * l2Norm (D);
+        g += LAMBDA * l2Norm (W);
+        g += MU * l2Norm (D);
           
-          System.out.println ("objective: " + String.format ("%.3g", g));
-        }
-        
-        boolean selected = false;
-        while (!selected)
-        {
-          i = randIndex (NUM_USERS);
-          j = randIndex (NUM_ITEMS);
-          if (R [i][j] >= 0)
-            selected = true;
-        }
-
-        double p = predicted (i, j, W, D); // predicted value
-        double e = R [i][j] - p; // prediction error
-      
-        for (int k = 0; k < F; k++)
-        {
-          double dw = 2 * (-D [k][j] * e + LAMBDA * W [i][k]); // dg/dw
-          W [i][k] -= GAMMA * dw;
-        
-          double dd = 2 * (-D [k][j] * e + LAMBDA * W [i][k]); // dg/dd
-          D [k][j] -= GAMMA * dd;
-        }
+        System.out.println ("objective: " + String.format ("%.3g", g));
       }
+        
+      for (int i = 0; i < NUM_USERS; i++)
+        for (int j = 0; j < NUM_ITEMS; j++)
+          if (R [i][j] >= 0)
+          {
+            double p = predicted (i, j, W, D); // predicted value
+            double e = R [i][j] - p; // prediction error
+            
+            for (int k = 0; k < F; k++)
+            {
+              double dw = 2 * (-D [k][j] * e + LAMBDA * W [i][k]); // dg/dw
+              W [i][k] -= GAMMA * dw;
+              
+              double dd = 2 * (-D [k][j] * e + LAMBDA * W [i][k]); // dg/dd
+              D [k][j] -= GAMMA * dd;
+            }
+          }
     }
     
     double[][] P = new double [NUM_USERS][NUM_ITEMS];
