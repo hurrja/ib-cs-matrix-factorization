@@ -6,10 +6,10 @@ public class Main
   {
     // hyperparameters
     final int F = 2; // number of features
-    final double GAMMA = 0.01; // sgd step size
-    final double LAMBDA = 0.001; // regularization weight for user weights
+    final double GAMMA = 0.0001; // sgd step size
+    final double LAMBDA = 0.002; // regularization weight for user weights
     final double MU = LAMBDA; // regularization weight for degrees
-    final int NUM_SGD_ROUNDS = 100000; // termination condition
+    final int NUM_SGD_ROUNDS = 10000; // termination condition
 
     final int[][] R = {{3, 2, 3, -1, -1},
       {-1, 2, 2, 2, -1},
@@ -30,6 +30,26 @@ public class Main
       int i = 0, j = 0;
       for (int r = 0; r < NUM_SGD_ROUNDS; r++)
       {
+        if (r % (NUM_SGD_ROUNDS / 10) == 0) // log 10 times
+        {
+          // log progress
+          double g = 0; // objective function
+          for (int k = 0; k < NUM_USERS; k++)
+            for (int l = 0; l < NUM_ITEMS; l++)
+            {
+              if (R [k][l] >= 0)
+              {
+                double d = R [i][j] - predicted (i, j, W, D);
+                g += d * d;
+              }
+            }
+          
+          g += LAMBDA * l2Norm (W);
+          g += MU * l2Norm (D);
+          
+          System.out.println ("objective: " + String.format ("%.3g", g));
+        }
+        
         boolean selected = false;
         while (!selected)
         {
@@ -39,7 +59,7 @@ public class Main
             selected = true;
         }
 
-        double p = predicted (i, j, W, D, F); // predicted value
+        double p = predicted (i, j, W, D); // predicted value
         double e = R [i][j] - p; // prediction error
       
         for (int k = 0; k < F; k++)
@@ -58,9 +78,19 @@ public class Main
     for (int i = 0; i < NUM_USERS; i++)
     {
       for (int j = 0; j < NUM_ITEMS; j++)
-        System.out.print (String.format ("%.2f", predicted (i, j, W, D, F)) + " ");
+        System.out.print (String.format ("%.2f", predicted (i, j, W, D)) + " ");
       System.out.println ("");
     }
+  }
+
+  private static double l2Norm (double[][] A)
+  {
+    double n = 0; // norm
+    for (double[] r : A)
+      for (double v : r)
+        n += v * v;
+
+    return n;
   }
 
   private static void initializeOnes (double[][] A)
@@ -70,10 +100,12 @@ public class Main
         A [i][j] = 1;
   }
   
-  private static double predicted (int i, int j, double[][] W, double[][] D, final int F)
+  private static double predicted (int i, int j, double[][] W, double[][] D)
   {
+    assert (W [0].length == D.length); // inner dimensions match
+
     double p = 0; // predicted value
-    for (int k = 0; k < F; k++)
+    for (int k = 0; k < D.length; k++)
       p += W [i][k] * D [k][j];
 
     return p;
