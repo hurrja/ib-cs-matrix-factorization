@@ -6,7 +6,7 @@ public class Main
   {
     // hyperparameters
     final int F = 2; // number of features
-    final double GAMMA = 0.0001; // sgd step size
+    final double GAMMA = 0.001; // sgd step size
     final double LAMBDA = 0.002; // regularization weight for user weights
     final double MU = LAMBDA; // regularization weight for degrees
     final int NUM_SGD_ROUNDS = 10000; // termination condition
@@ -39,7 +39,7 @@ public class Main
             {
               if (R [k][l] >= 0)
               {
-                double d = R [i][j] - predicted (i, j, W, D);
+                double d = R [k][l] - predicted (k, l, W, D);
                 g += d * d;
               }
             }
