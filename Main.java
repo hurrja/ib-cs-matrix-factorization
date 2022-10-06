@@ -106,9 +106,4 @@ public class Main
 
     return p;
   }
-                        
-  private static int randIndex (int size)
-  {
-    return ThreadLocalRandom.current().nextInt(size);
-  }
 }
