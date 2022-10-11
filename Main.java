@@ -1,4 +1,4 @@
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.Random;
 
 public class Main
 {
@@ -24,10 +24,11 @@ public class Main
     final int NUM_ITEMS = R [0].length;
 
     // factor matrices
+    Random rand = new Random (10);
     double[][] W = new double [NUM_USERS][F]; // users to features
-    initialize (W);
+    initialize (W, rand);
     double[][] D = new double [F][NUM_ITEMS]; // features to items
-    initialize (D);
+    initialize (D, rand);
 
     // loop NUM_SGD_ROUNDS over entire data
     for (int r = 0; r < NUM_SGD_ROUNDS; r++)
@@ -89,11 +90,11 @@ public class Main
     return n;
   }
 
-  private static void initialize (double[][] A)
+  private static void initialize (double[][] A, Random rand)
   {
     for (int i = 0; i < A.length; i++)
       for (int j = 0; j < A [0].length; j++)
-        A [i][j] = ThreadLocalRandom.current ().nextDouble (1) - 0.5;
+        A [i][j] = rand.nextDouble (-1, 1);
   }
   
   private static double predicted (int i, int j, double[][] W, double[][] D)
