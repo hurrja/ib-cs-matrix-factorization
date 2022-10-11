@@ -1,3 +1,5 @@
+import java.util.concurrent.ThreadLocalRandom;
+
 public class Main
 {
   public static void main (String[] args)
@@ -9,7 +11,7 @@ public class Main
     final double MU = LAMBDA; // regularization weight for degrees
 
     // termination condition: this many rounds over entire data
-    final int NUM_SGD_ROUNDS = 1000; 
+    final int NUM_SGD_ROUNDS = 10000; 
     
     // observed values
     final int[][] R = {{3, 2, 3, -1, -1},
@@ -23,9 +25,9 @@ public class Main
 
     // factor matrices
     double[][] W = new double [NUM_USERS][F]; // users to features
-    initializeOnes (W);
+    initialize (W);
     double[][] D = new double [F][NUM_ITEMS]; // features to items
-    initializeOnes (D);
+    initialize (D);
 
     // loop NUM_SGD_ROUNDS over entire data
     for (int r = 0; r < NUM_SGD_ROUNDS; r++)
@@ -87,11 +89,11 @@ public class Main
     return n;
   }
 
-  private static void initializeOnes (double[][] A)
+  private static void initialize (double[][] A)
   {
     for (int i = 0; i < A.length; i++)
       for (int j = 0; j < A [0].length; j++)
-        A [i][j] = 1;
+        A [i][j] = ThreadLocalRandom.current ().nextDouble (1) - 0.5;
   }
   
   private static double predicted (int i, int j, double[][] W, double[][] D)
